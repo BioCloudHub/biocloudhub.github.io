@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="img/logo16.png" />
+    <title>BioCloudHub - 赋能生物制药数字化未来</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Three.js CDN -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+                950: "#082f49",
+              },
+              accent: {
+                teal: "#2dd4bf",
+                violet: "#8b5cf6",
+                rose: "#f43f5e",
+              },
+            },
+            backgroundImage: {
+              "hero-pattern":
+                "radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.15), transparent), radial-gradient(circle at 80% 70%, rgba(45, 212, 191, 0.15), transparent), linear-gradient(to right, rgba(12, 74, 110, 0.98), rgba(8, 47, 73, 0.95))",
+              "mesh-gradient": 
+                "radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.15) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(139, 92, 246, 0.1) 0, transparent 50%), radial-gradient(at 100% 0%, rgba(45, 212, 191, 0.15) 0, transparent 50%)",
+            },
+            animation: {
+              float: "float 6s ease-in-out infinite",
+              "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+              "reveal": "reveal 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards",
+            },
+            keyframes: {
+              float: {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-20px)" },
+              },
+              fadeInUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              reveal: {
+                "0%": { transform: "translateY(100%)" },
+                "100%": { transform: "translateY(0)" },
+              }
+            },
+          },
+        },
+      };
+    </script>
+    <script>
+      // 立即执行以防止闪烁
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+    <style>
+      :root {
+        --text-color: #52525B;
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.3);
+      }
+      .dark {
+        --text-color: #A1A1AA;
+        --glass-bg: rgba(15, 23, 42, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.1);
+      }
+      
+      /* 美化滚动条 */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.2);
+        border-radius: 10px;
+        transition: background 0.3s;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.4);
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: rgba(51, 65, 85, 0.3);
+      }
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(51, 65, 85, 0.5);
+      }
+
+      /* 确保 html 和 body 不滚动 */
+      html, body {
+        height: 100%;
+        overflow: hidden;
+        scroll-behavior: smooth;
+      }
+
+      [v-cloak] {
+        display: none;
+      }
+      
+      /* 噪声纹理 */
+      .noise {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0.03;
+        z-index: 9999;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      }
+
+      .day-night {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.8;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .day-night:hover {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      .day-night input {
+        display: none;
+      }
+      .day-night input+div {
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        position: relative;
+        box-shadow: inset 8px -8px 0 0 var(--text-color);
+        transform: scale(1) rotate(-2deg);
+        transition: box-shadow 0.5s ease 0s, transform 0.4s ease 0.1s;
+      }
+      .day-night input+div:before {
+        content: "";
+        width: inherit;
+        height: inherit;
+        border-radius: inherit;
+        position: absolute;
+        left: 0;
+        top: 0;
+        transition: background-color 0.3s ease;
+      }
+      .day-night input+div:after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        margin: -3px 0 0 -3px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        box-shadow: 0 -23px 0 var(--text-color), 0 23px 0 var(--text-color), 23px 0 0 var(--text-color), -23px 0 0 var(--text-color), 15px 15px 0 var(--text-color), -15px 15px 0 var(--text-color), 15px -15px 0 var(--text-color), -15px -15px 0 var(--text-color);
+        transform: scale(0);
+        transition: all 0.3s ease;
+      }
+      .day-night input:checked+div {
+        box-shadow: inset 20px -20px 0 0 var(--text-color);
+        transform: scale(0.5) rotate(0deg);
+        transition: transform 0.3s ease 0.1s, box-shadow 0.2s ease 0s;
+      }
+      .day-night input:checked+div:before {
+        background: var(--text-color);
+        transition: background-color 0.3s ease 0.1s;
+      }
+      .day-night input:checked+div:after {
+        transform: scale(1);
+        transition: transform 0.5s ease 0.15s;
+      }
+      #antibody-canvas {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+      @media (min-width: 1024px) {
+        #antibody-canvas {
+          width: 60%;
+          left: 40%;
+        }
+      }
+      .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+      }
+      .feature-card {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .feature-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.1);
+      }
+      .blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(14, 165, 233, 0.2) 0%,
+          rgba(255, 255, 255, 0) 70%
+        );
+        filter: blur(40px);
+        border-radius: 50%;
+        z-index: 0;
+      }
+      .grid-pattern {
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.05) 1px,
+          transparent 1px
+        );
+        background-size: 30px 30px;
+      }
+      .molecule {
+        position: absolute;
+        opacity: 0.15;
+        pointer-events: none;
+        filter: blur(1px);
+      }
+      
+      .stagger-1 { animation-delay: 0.1s; }
+      .stagger-2 { animation-delay: 0.2s; }
+      .stagger-3 { animation-delay: 0.3s; }
+      
+      .text-balance {
+        text-wrap: balance;
+      }
+    </style>
+  </head>
+  <body class="bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans transition-all duration-500 overflow-hidden">
+    <!-- 噪声纹理叠加 -->
+    <div class="noise"></div>
+    
+    <div id="app" v-cloak class="h-screen flex flex-col relative z-10">
+      <!-- Navigation -->
+      <nav
+        class="relative shrink-0 z-50 bg-white/70 dark:bg-slate-900/40 backdrop-blur-2xl border-b border-white/20 dark:border-slate-800/50 shadow-sm transition-all duration-300"
+      >
+        <div class="max-w-7xl mx-auto px-6 md:px-8">
+          <div class="flex justify-between h-20 items-center">
+            <div class="flex items-center gap-4 group cursor-pointer">
+              <div
+                class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl shadow-lg shadow-primary-500/20 p-2.5 transition-transform group-hover:scale-110 group-hover:rotate-3"
+              >
+                <img
+                  src="img/logo64.png"
+                  alt="BioCloudHub Logo"
+                  class="w-full h-full object-contain brightness-0 invert"
+                />
+              </div>
+              <div class="flex flex-col">
+                <span
+                  class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 leading-none tracking-tight"
+                  >BioCloudHub</span
+                >
+                <span
+                  class="text-[10px] font-bold text-primary-500 dark:text-primary-400 uppercase tracking-[0.3em] mt-1.5"
+                  >Intelligence Hub</span
+                >
+              </div>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-12">
+              <a
+                href="#"
+                class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors tracking-wide relative group/nav"
+                >专业工具
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all group-hover/nav:w-full"></span>
+              </a>
+              <a
+                href="#"
+                class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors tracking-wide relative group/nav"
+                >行业知识
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all group-hover/nav:w-full"></span>
+              </a>
+              <a
+                href="#"
+                class="text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors tracking-wide relative group/nav"
+                >合规文库
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all group-hover/nav:w-full"></span>
+              </a>
+              
+              <div class="flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-slate-800">
+                <button
+                  class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-7 py-2.5 rounded-xl font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gray-900/10 dark:shadow-white/5 text-sm"
+                >
+                  立即加入
+                </button>
+
+                <!-- 日夜切换按钮 -->
+                <label class="day-night">
+                  <input type="checkbox" id="theme-toggle">
+                  <div></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="md:hidden">
+              <button
+                @click="isMenuOpen = !isMenuOpen"
+                class="p-2 text-gray-600"
+              >
+                <i :data-lucide="isMenuOpen ? 'x' : 'menu'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div
+          v-show="isMenuOpen"
+          class="absolute top-full left-0 w-full md:hidden bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800 py-8 px-6 space-y-6 z-50 shadow-2xl animate-fade-in-up"
+        >
+          <a href="#" class="block text-lg font-bold text-gray-900 dark:text-white">专业工具</a>
+          <a href="#" class="block text-lg font-bold text-gray-900 dark:text-white">行业知识</a>
+          <a href="#" class="block text-lg font-bold text-gray-900 dark:text-white">合规文库</a>
+          <div class="pt-4 border-t border-gray-100 dark:border-slate-800">
+            <button
+              class="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-4 rounded-2xl font-black text-lg"
+            >
+              立即加入
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <!-- Hero Section -->
+        <header
+          class="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden bg-slate-950"
+        >
+        <!-- Animated Background Elements -->
+        <div class="absolute inset-0 z-0">
+          <div
+            class="absolute top-[-10%] left-[-5%] blob animate-pulse-slow opacity-30"
+          ></div>
+          <div
+            class="absolute bottom-[-10%] right-[-5%] blob animate-pulse-slow opacity-20"
+            style="animation-delay: 2s"
+          ></div>
+          <div
+            class="absolute inset-0 bg-hero-pattern opacity-60"
+          ></div>
+          <div class="absolute inset-0 grid-pattern opacity-20"></div>
+          <div class="absolute inset-0 bg-mesh-gradient opacity-40"></div>
+        </div>
+
+        <!-- Floating Molecular Icons -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-10">
+          <div
+            class="molecule animate-float top-1/4 left-10 text-primary-400"
+            style="animation-duration: 8s"
+          >
+            <i data-lucide="dna" style="width: 48px; height: 48px"></i>
+          </div>
+          <div
+            class="molecule animate-float bottom-1/4 right-20 text-accent-teal"
+            style="animation-delay: 1s; animation-duration: 10s"
+          >
+            <i data-lucide="microscope" style="width: 64px; height: 64px"></i>
+          </div>
+          <div
+            class="molecule animate-float top-1/3 right-1/4 text-accent-violet"
+            style="animation-delay: 2s; animation-duration: 12s"
+          >
+            <i data-lucide="beaker" style="width: 40px; height: 40px"></i>
+          </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 md:px-8 relative z-20">
+          <div class="flex flex-col lg:flex-row items-center gap-16">
+            <div class="lg:w-1/2 text-center lg:text-left">
+              <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-semibold mb-10 backdrop-blur-xl animate-fade-in-up"
+              >
+                <span class="flex h-2.5 w-2.5 relative">
+                  <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-teal opacity-75"
+                  ></span>
+                  <span
+                    class="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-teal"
+                  ></span>
+                </span>
+                <span class="tracking-wide opacity-90">引领生物制药数字化未来</span>
+              </div>
+              
+              <h1
+                class="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] mb-10 tracking-tight animate-fade-in-up stagger-1"
+              >
+                行业知识<br />
+                <span
+                  class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-accent-teal to-primary-300"
+                  >赋能智慧协作</span
+                >
+              </h1>
+              
+              <p
+                class="text-lg md:text-xl text-primary-100/60 mb-14 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up stagger-2 text-balance"
+              >
+                BioCloudHub 深度整合行业知识库、数字化工具与监管流，为您构建可进化的行业智慧生态。
+              </p>
+              
+              <div class="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start animate-fade-in-up stagger-3">
+                <a
+                  href="./card/index.html"
+                  class="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black text-lg hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.15)] flex items-center justify-center gap-3 group"
+                >
+                  探索工具箱
+                  <i
+                    data-lucide="arrow-right"
+                    class="group-hover:translate-x-1 transition-transform w-5 h-5"
+                  ></i>
+                </a>
+                <button
+                  class="px-10 py-5 bg-white/5 backdrop-blur-xl text-white border border-white/10 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                >
+                  查阅知识库
+                </button>
+              </div>
+            </div>
+            <!-- Antibody Canvas Container -->
+            <div
+              class="lg:w-1/2 h-[400px] lg:h-[600px] w-full relative perspective-1000 animate-fade-in-up stagger-2"
+            >
+              <div id="antibody-canvas" class="drop-shadow-[0_0_50px_rgba(14,165,233,0.3)]"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Curve -->
+        <div
+          class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-slate-950 to-transparent transition-colors duration-500 z-30"
+        ></div>
+      </header>
+
+      <section class="relative z-40 -mt-16 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 md:px-8">
+          <div
+            class="glass-card rounded-[2.5rem] p-10 md:p-14 shadow-2xl grid grid-cols-2 md:grid-cols-4 gap-12 transition-all duration-500 animate-fade-in-up"
+          >
+            <div
+              v-for="stat in stats"
+              :key="stat.label"
+              class="text-center md:border-r border-gray-200/50 dark:border-slate-700/50 last:border-0 group cursor-default"
+            >
+              <div
+                class="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-3 tracking-tighter transition-transform group-hover:scale-110 duration-300"
+              >
+                {{ stat.value }}
+              </div>
+              <div
+                class="text-[11px] font-black text-primary-500 dark:text-primary-400 uppercase tracking-[0.25em] opacity-80"
+              >
+                {{ stat.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-32 bg-white dark:bg-slate-950 relative transition-colors duration-500 overflow-hidden">
+        <!-- Background decorative blob -->
+        <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
+          <div
+            class="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-10"
+          >
+            <div class="max-w-2xl">
+              <h2
+                class="text-primary-500 font-black tracking-[0.25em] uppercase text-xs mb-6 flex items-center gap-3"
+              >
+                <span class="w-8 h-[2px] bg-primary-500"></span>
+                Core Value
+              </h2>
+              <p
+                class="text-5xl md:text-6xl font-black text-gray-900 dark:text-white leading-[1.15] tracking-tight"
+              >
+                知识与工具的<br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400"
+                  >深度融合体系</span
+                >
+              </p>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-xl max-w-sm leading-relaxed font-medium">
+              我们不仅提供信息，更致力于构建一个能够自我演进的行业智慧生态。
+            </p>
+          </div>
+          
+          <div class="grid md:grid-cols-3 gap-10">
+            <div
+              v-for="(f, index) in features"
+              :key="f.title"
+              class="feature-card p-12 rounded-[3rem] bg-gray-50/50 dark:bg-slate-900/50 border border-gray-100 dark:border-slate-800 transition-all duration-500 group relative overflow-hidden backdrop-blur-sm"
+              :class="'stagger-' + (index + 1)"
+            >
+              <!-- Hover gradient effect -->
+              <div class="absolute inset-0 bg-gradient-to-br from-primary-500/0 via-primary-500/0 to-primary-500/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div
+                class="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.1] dark:group-hover:opacity-[0.15] transition-all duration-700 group-hover:-translate-x-4 group-hover:translate-y-4"
+              >
+                <i
+                  :data-lucide="f.icon"
+                  style="width: 160px; height: 160px"
+                ></i>
+              </div>
+              
+              <div
+                :class="['w-16 h-16 rounded-2xl flex items-center justify-center mb-10 shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6', f.bg, f.color]"
+              >
+                <i :data-lucide="f.icon" style="width: 32px; height: 32px"></i>
+              </div>
+              
+              <h3 class="text-2xl font-black mb-6 text-gray-900 dark:text-white tracking-tight">
+                {{ f.title }}
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 leading-relaxed text-lg font-medium">{{ f.desc }}</p>
+              
+              <div
+                class="mt-10 flex items-center gap-3 text-primary-600 dark:text-primary-400 font-bold cursor-pointer group/link"
+              >
+                <span class="relative">
+                  了解详情
+                  <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all group-hover/link:w-full"></span>
+                </span>
+                <i
+                  data-lucide="arrow-right"
+                  class="group-hover/link:translate-x-1.5 transition-transform w-5 h-5"
+                ></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-32 bg-white dark:bg-slate-950 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 md:px-8">
+          <div
+            class="bg-slate-950 rounded-[4rem] p-16 md:p-28 text-center relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] group"
+          >
+            <!-- Decorative Elements -->
+            <div
+              class="absolute inset-0 grid-pattern opacity-10 transition-opacity group-hover:opacity-20 duration-700"
+            ></div>
+            <div
+              class="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary-500/20 rounded-full blur-[120px] animate-pulse-slow"
+            ></div>
+            <div
+              class="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-accent-teal/10 rounded-full blur-[120px] animate-pulse-slow"
+              style="animation-delay: 2s"
+            ></div>
+
+            <div class="relative z-10 max-w-4xl mx-auto">
+              <h2
+                class="text-4xl md:text-7xl font-black text-white mb-10 leading-[1.1] tracking-tight"
+              >
+                构建您的<span
+                  class="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-accent-teal to-primary-300"
+                  >行业大脑</span
+                >
+              </h2>
+              <p
+                class="text-primary-100/60 text-xl md:text-2xl mb-16 max-w-2xl mx-auto font-medium leading-relaxed text-balance"
+              >
+                加入 BioCloudHub，获取最前沿的行业洞察与实用工具，开启信息高效整合的新篇章。
+              </p>
+              <div class="flex flex-col sm:flex-row justify-center gap-8">
+                <button
+                  class="bg-white text-slate-950 px-12 py-6 rounded-2xl font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.2)]"
+                >
+                  立即免费开始
+                </button>
+                <button
+                  class="bg-white/5 backdrop-blur-xl text-white border border-white/10 px-12 py-6 rounded-2xl font-black text-xl hover:bg-white/10 transition-all"
+                >
+                  预约产品演示
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="bg-white dark:bg-slate-950 py-20 border-t border-gray-100 dark:border-slate-900 transition-colors duration-500">
+        <div class="max-w-7xl mx-auto px-6 md:px-8">
+          <div class="flex flex-col items-center">
+            <div class="flex items-center gap-4 mb-10 group cursor-pointer">
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-slate-800 rounded-xl p-2 transition-transform group-hover:scale-110"
+              >
+                <img
+                  src="img/logo64.png"
+                  alt="BioCloudHub Logo"
+                  class="w-full h-full object-contain grayscale opacity-70"
+                />
+              </div>
+              <span class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">BioCloudHub</span>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-x-12 gap-y-6 mb-12 text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              <a href="#" class="hover:text-primary-500 transition-colors">关于我们</a>
+              <a href="#" class="hover:text-primary-500 transition-colors">隐私政策</a>
+              <a href="#" class="hover:text-primary-500 transition-colors">服务协议</a>
+              <a href="#" class="hover:text-primary-500 transition-colors">联系方式</a>
+            </div>
+            
+            <div class="w-full max-w-xs h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-slate-800 to-transparent mb-12"></div>
+            
+            <p class="text-gray-400 dark:text-gray-600 text-sm font-medium">
+              © 2026 BioCloudHub. Intelligence for Biopharma Excellence.
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Theme Management
+      const themeToggle = document.getElementById('theme-toggle');
+      const htmlElement = document.documentElement;
+
+      function updateTheme(isLight) {
+        if (isLight) {
+          htmlElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+          if (themeToggle) themeToggle.checked = true;
+        } else {
+          htmlElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+          if (themeToggle) themeToggle.checked = false;
+        }
+      }
+
+      // Initialize
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      updateTheme(savedTheme === 'light');
+
+      if (themeToggle) {
+        themeToggle.addEventListener('change', () => {
+          updateTheme(themeToggle.checked);
+        });
+      }
+
+      const { createApp, ref, onMounted, nextTick } = Vue;
+
+      createApp({
+        setup() {
+          const isMenuOpen = ref(false);
+          const features = [
+            {
+              title: "行业知识库",
+              desc: "深度整合全球监管法规、科研文献与案例研究，构建结构化的行业知识体系。",
+              icon: "book",
+              bg: "bg-blue-100",
+              color: "text-blue-600",
+            },
+            {
+              title: "专业工具集",
+              desc: "提供覆盖研发计算、合规自测、项目管理等场景的专用工具，极速提升工作效率。",
+              icon: "wrench",
+              bg: "bg-teal-100",
+              color: "text-teal-600",
+            },
+            {
+              title: "信息整合中心",
+              desc: "连通孤岛数据，实现多源异构信息的高效采集、清洗与可视化，驱动决策透明化。",
+              icon: "layers",
+              bg: "bg-indigo-100",
+              color: "text-indigo-600",
+            },
+          ];
+
+          const stats = [
+            { label: "整合工具", value: "120+" },
+            { label: "知识条目", value: "50k+" },
+            { label: "覆盖企业", value: "800+" },
+            { label: "活跃专家", value: "300+" },
+          ];
+
+          onMounted(() => {
+            lucide.createIcons();
+            initAntibodyScene();
+          });
+
+          const initAntibodyScene = () => {
+            const container = document.getElementById("antibody-canvas");
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(
+              45,
+              container.clientWidth / container.clientHeight,
+              0.1,
+              1000
+            );
+            camera.position.z = 10;
+
+            const renderer = new THREE.WebGLRenderer({
+              alpha: true,
+              antialias: true,
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Antibody Group
+            const antibody = new THREE.Group();
+
+            const createChain = (x, y, z, rx, ry, rz, h) => {
+              const geometry = new THREE.CylinderGeometry(0.12, 0.12, h, 32);
+              const material = new THREE.MeshStandardMaterial({
+                color: 0x0ea5e9,
+                emissive: 0x075985,
+                roughness: 0.1,
+                metalness: 0.8,
+                transparent: true,
+                opacity: 0.9,
+              });
+              const mesh = new THREE.Mesh(geometry, material);
+
+              const wireGeometry = new THREE.CylinderGeometry(0.13, 0.13, h, 12);
+              const wireMaterial = new THREE.MeshBasicMaterial({
+                color: 0x38bdf8,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15,
+              });
+              const wireMesh = new THREE.Mesh(wireGeometry, wireMaterial);
+              mesh.add(wireMesh);
+
+              mesh.position.set(x, y, z);
+              mesh.rotation.set(rx, ry, rz);
+              return mesh;
+            };
+
+            const createJoint = (x, y, z) => {
+              const geometry = new THREE.SphereGeometry(0.2, 32, 32);
+              const material = new THREE.MeshStandardMaterial({
+                color: 0x2dd4bf,
+                emissive: 0x134e4a,
+                roughness: 0.1,
+                metalness: 0.9,
+              });
+              const mesh = new THREE.Mesh(geometry, material);
+
+              const glowGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+              const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x2dd4bf,
+                transparent: true,
+                opacity: 0.1,
+              });
+              const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+              mesh.add(glowMesh);
+
+              mesh.position.set(x, y, z);
+              return mesh;
+            };
+
+            // Main stem
+            antibody.add(createChain(0, -1.2, 0, 0, 0, 0, 3.5));
+            antibody.add(createJoint(0, 0.5, 0));
+
+            // Left arm
+            antibody.add(createChain(-1.2, 2.2, 0, 0, 0, Math.PI / 4, 2.8));
+            antibody.add(createJoint(-2.2, 3.2, 0));
+
+            // Right arm
+            antibody.add(createChain(1.2, 2.2, 0, 0, 0, -Math.PI / 4, 2.8));
+            antibody.add(createJoint(2.2, 3.2, 0));
+
+            scene.add(antibody);
+
+            // Particle Field
+            const particlesGeometry = new THREE.BufferGeometry();
+            const count = 2000;
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i++) {
+              positions[i] = (Math.random() - 0.5) * 25;
+            }
+            particlesGeometry.setAttribute(
+              "position",
+              new THREE.BufferAttribute(positions, 3)
+            );
+            const particlesMaterial = new THREE.PointsMaterial({
+              size: 0.04,
+              color: 0x38bdf8,
+              transparent: true,
+              opacity: 0.4,
+              blending: THREE.AdditiveBlending
+            });
+            const points = new THREE.Points(
+              particlesGeometry,
+              particlesMaterial
+            );
+            scene.add(points);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x0ea5e9, 5, 50);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0x2dd4bf, 3, 50);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            const mouse = { x: 0, y: 0 };
+            window.addEventListener("mousemove", (event) => {
+              mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+              mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const animate = () => {
+              requestAnimationFrame(animate);
+
+              // Base rotation + mouse interaction
+              antibody.rotation.y +=
+                0.005 + (mouse.x * 0.2 - antibody.rotation.y) * 0.02;
+              antibody.rotation.x +=
+                (-mouse.y * 0.2 + 0.2 - antibody.rotation.x) * 0.02;
+
+              // Automatic gentle floating
+              antibody.position.y = Math.sin(Date.now() * 0.001) * 0.2;
+              points.rotation.y += 0.0005;
+              points.rotation.x += 0.0002;
+
+              renderer.render(scene, camera);
+            };
+
+            animate();
+
+            window.addEventListener("resize", () => {
+              camera.aspect = container.clientWidth / container.clientHeight;
+              camera.updateProjectionMatrix();
+              renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+          };
+
+          return { isMenuOpen, features, stats };
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>

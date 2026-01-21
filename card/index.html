@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>BioCloudHub - 资源中心</title>
+    <link rel="icon" type="image/png" href="../img/logo16.png" />
+    <link rel="stylesheet" href="https://public.codepenassets.com/css/reset-2.0.min.css">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css'>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="./style.css">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+                950: "#082f49",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script>
+      // 立即执行以防止闪烁
+      (function() {
+        const theme = localStorage.getItem('theme') || 'light';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+  </head>
+    
+  <body class="light dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 overflow-hidden">
+    <div id="app" class="h-screen overflow-hidden">
+      <!-- 全局滚动容器 -->
+      <div class="h-full overflow-y-auto overflow-x-hidden custom-scrollbar" id="mainScrollContainer">
+        
+        <!-- Navigation (现在在滚动容器内，会随滚动消失) -->
+        <nav class="relative z-[1000] bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl border-b border-gray-100 dark:border-slate-800 shadow-sm transition-colors duration-300">
+          <div class="max-w-[1440px] mx-auto px-4 md:px-4">
+            <div class="flex justify-between h-20 items-center">
+              <div class="flex items-center gap-3">
+                <a href="../index.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                  <div class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-slate-800 dark:to-slate-900 rounded-xl border border-primary-200 dark:border-slate-700 shadow-sm p-2.5">
+                    <img src="../img/logo64.png" alt="BioCloudHub Logo" class="w-full h-full object-contain" />
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary-950 to-primary-700 dark:from-primary-400 dark:to-primary-200 leading-none">BioCloudHub</span>
+                    <span class="text-[9px] font-bold text-primary-400 uppercase tracking-[0.2em] mt-1">Intelligence Hub</span>
+                  </div>
+                </a>
+              </div>
+
+              <div class="hidden md:flex items-center space-x-8">
+                <a href="../index.html" class="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-primary-900 dark:hover:text-white transition-colors">首页</a>
+                <a href="#" class="text-sm font-bold text-primary-600 dark:text-primary-400">资源中心</a>
+                <a href="#" class="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-primary-900 dark:hover:text-white transition-colors">行业知识</a>
+                <a href="#" class="text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-primary-900 dark:hover:text-white transition-colors">合规文库</a>
+                
+                <button class="bg-primary-950 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-black transition-all shadow-lg shadow-primary-900/10 text-sm">
+                  立即加入
+                </button>
+
+                <!-- 日夜切换按钮 -->
+                <label class="day-night !relative !inset-0 !top-0 !right-0 !opacity-100 ml-6">
+                  <input type="checkbox" id="theme-toggle">
+                  <div></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <div class="container">
+          <!-- 左侧筛选区域 -->
+          <aside class="filter-sidebar">
+            <div class="filter-section">
+              <h3 class="filter-title">搜索筛选</h3>
+              <input 
+                type="text" 
+                id="searchInput" 
+                class="search-input" 
+                placeholder="搜索名称或描述..."
+              />
+            </div>
+
+            <div class="filter-section">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="filter-title !mb-0">标签筛选</h3>
+                <button id="clearFilters" class="clear-link">清除筛选</button>
+              </div>
+              <div class="tag-filters" id="tagFilters">
+                <!-- 标签将通过 JavaScript 动态生成 -->
+              </div>
+            </div>
+          </aside>
+
+          <!-- 右侧卡片区域 -->
+          <main class="content-area">
+            <!-- 角色切换移动到此处，改为分段控制样式 -->
+            <div class="role-selector-wrapper">
+              <div class="role-selector" id="roleSwitcher">
+                <div class="role-slider"></div>
+                <!-- 角色将通过 JavaScript 动态生成 -->
+              </div>
+            </div>
+
+            <!-- 弹性滚动容器，包裹卡片列表和加载器 -->
+            <div class="elastic-container">
+              <div class="grid" id="cardGrid">
+                <!-- 卡片将通过 JavaScript 动态生成 -->
+              </div>
+              <div class="loading-indicator" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <span>加载中...</span>
+              </div>
+            </div>
+          </main>
+        </div>
+
+        <!-- 回到顶部按钮 -->
+        <button id="backToTopBtn" class="back-to-top" title="回到顶部">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 15l-6-6-6 6"/>
+          </svg>
+        </button>
+
+        <!-- 底部发光效果 -->
+        <div id="bottomGlow" class="bottom-glow"></div>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+
+  </body>
+  
+</html>
