@@ -1352,4 +1352,13 @@ export const cardData = [
     url: "https://www.wuxibiologics.com",
     roles: ["rd", "production"],
   },
+  {
+    logo: "https://www.google.com/s2/favicons?domain=scribd.com&sz=128",
+    brand: "Scribd",
+    name: "全球文档分享平台",
+    description: "提供书籍、学术论文、杂志、音频书及各类文档的在线阅读与分享服务，是研究学习、发现新知识的重要平台。",
+    tags: ["文档分享", "学术资源", "阅读"],
+    url: "https://www.scribd.com/home",
+    roles: ["rd", "clinical", "medical", "intelligence"],
+  },
 ];
