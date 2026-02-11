@@ -5,12 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="img/logo16.png" />
     <title>BioCloudHub - 赋能生物制药数字化未来</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Three.js CDN -->
-    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script>
@@ -18,6 +29,9 @@
         darkMode: 'class',
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
             colors: {
               primary: {
                 50: "#f0f9ff",
@@ -41,7 +55,7 @@
             backgroundImage: {
               "hero-pattern":
                 "radial-gradient(circle at 20% 30%, rgba(14, 165, 233, 0.15), transparent), radial-gradient(circle at 80% 70%, rgba(45, 212, 191, 0.15), transparent), linear-gradient(to right, rgba(12, 74, 110, 0.98), rgba(8, 47, 73, 0.95))",
-              "mesh-gradient": 
+              "mesh-gradient":
                 "radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.15) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(139, 92, 246, 0.1) 0, transparent 50%), radial-gradient(at 100% 0%, rgba(45, 212, 191, 0.15) 0, transparent 50%)",
             },
             animation: {
@@ -90,7 +104,7 @@
         --glass-bg: rgba(15, 23, 42, 0.7);
         --glass-border: rgba(255, 255, 255, 0.1);
       }
-      
+
       /* 美化滚动条 */
       ::-webkit-scrollbar {
         width: 6px;
@@ -124,7 +138,7 @@
       [v-cloak] {
         display: none;
       }
-      
+
       /* 噪声纹理 */
       .noise {
         position: fixed;
@@ -207,12 +221,7 @@
         z-index: 1;
         pointer-events: none;
       }
-      @media (min-width: 1024px) {
-        #antibody-canvas {
-          width: 60%;
-          left: 40%;
-        }
-      }
+
       .glass-card {
         background: var(--glass-bg);
         backdrop-filter: blur(16px) saturate(180%);
@@ -241,10 +250,16 @@
       }
       .grid-pattern {
         background-image: radial-gradient(
-          rgba(255, 255, 255, 0.05) 1px,
+          rgba(15, 23, 42, 0.05) 1px,
           transparent 1px
         );
         background-size: 30px 30px;
+      }
+      .dark .grid-pattern {
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.05) 1px,
+          transparent 1px
+        );
       }
       .molecule {
         position: absolute;
@@ -252,11 +267,11 @@
         pointer-events: none;
         filter: blur(1px);
       }
-      
+
       .stagger-1 { animation-delay: 0.1s; }
       .stagger-2 { animation-delay: 0.2s; }
       .stagger-3 { animation-delay: 0.3s; }
-      
+
       .text-balance {
         text-wrap: balance;
       }
@@ -265,11 +280,11 @@
   <body class="bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-sans transition-all duration-500 overflow-hidden">
     <!-- 噪声纹理叠加 -->
     <div class="noise"></div>
-    
+
     <div id="app" v-cloak class="h-screen flex flex-col relative z-10">
       <!-- Navigation -->
       <nav
-        class="relative shrink-0 z-50 bg-white/70 dark:bg-slate-900/40 backdrop-blur-2xl border-b border-white/20 dark:border-slate-800/50 shadow-sm transition-all duration-300"
+        :class="['relative shrink-0 z-50 transition-all duration-300 border-b', isScrolled ? 'bg-white/70 dark:bg-slate-900/40 backdrop-blur-2xl border-white/20 dark:border-slate-800/50 shadow-sm' : 'bg-transparent border-transparent']"
       >
         <div class="max-w-7xl mx-auto px-6 md:px-8">
           <div class="flex justify-between h-20 items-center">
@@ -314,7 +329,7 @@
                 >合规文库
                 <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-500 transition-all group-hover/nav:w-full"></span>
               </a>
-              
+
               <div class="flex items-center gap-6 pl-6 border-l border-gray-200 dark:border-slate-800">
                 <button
                   class="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-7 py-2.5 rounded-xl font-bold hover:scale-105 active:scale-95 transition-all shadow-xl shadow-gray-900/10 dark:shadow-white/5 text-sm"
@@ -359,26 +374,29 @@
         </div>
       </nav>
 
-      <div class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+      <div ref="scrollContainer" class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         <!-- Hero Section -->
         <header
-          class="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden bg-slate-950"
+          class="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500"
         >
         <!-- Animated Background Elements -->
         <div class="absolute inset-0 z-0">
           <div
-            class="absolute top-[-10%] left-[-5%] blob animate-pulse-slow opacity-30"
+            class="absolute top-[-10%] left-[-5%] blob animate-pulse-slow opacity-30 mix-blend-multiply dark:mix-blend-normal"
           ></div>
           <div
-            class="absolute bottom-[-10%] right-[-5%] blob animate-pulse-slow opacity-20"
+            class="absolute bottom-[-10%] right-[-5%] blob animate-pulse-slow opacity-20 mix-blend-multiply dark:mix-blend-normal"
             style="animation-delay: 2s"
           ></div>
           <div
-            class="absolute inset-0 bg-hero-pattern opacity-60"
+            class="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/50 to-slate-100/50 dark:bg-hero-pattern opacity-100 dark:opacity-60 transition-all duration-500"
           ></div>
-          <div class="absolute inset-0 grid-pattern opacity-20"></div>
-          <div class="absolute inset-0 bg-mesh-gradient opacity-40"></div>
+          <div class="absolute inset-0 grid-pattern opacity-5 dark:opacity-20"></div>
+          <div class="absolute inset-0 bg-mesh-gradient opacity-30 dark:opacity-40"></div>
         </div>
+
+        <!-- Antibody Canvas (Background Layer) -->
+        <div id="antibody-canvas" class="absolute inset-0 pointer-events-none z-1"></div>
 
         <!-- Floating Molecular Icons -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none z-10">
@@ -406,7 +424,7 @@
           <div class="flex flex-col lg:flex-row items-center gap-16">
             <div class="lg:w-1/2 text-center lg:text-left">
               <div
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white text-sm font-semibold mb-10 backdrop-blur-xl animate-fade-in-up"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white text-sm font-semibold mb-10 backdrop-blur-xl animate-fade-in-up"
               >
                 <span class="flex h-2.5 w-2.5 relative">
                   <span
@@ -418,9 +436,9 @@
                 </span>
                 <span class="tracking-wide opacity-90">引领生物制药数字化未来</span>
               </div>
-              
+
               <h1
-                class="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] mb-10 tracking-tight animate-fade-in-up stagger-1"
+                class="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white leading-[1.05] mb-10 tracking-tight animate-fade-in-up stagger-1"
               >
                 行业知识<br />
                 <span
@@ -428,13 +446,13 @@
                   >赋能智慧协作</span
                 >
               </h1>
-              
+
               <p
-                class="text-lg md:text-xl text-primary-100/60 mb-14 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up stagger-2 text-balance"
+                class="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-14 max-w-xl mx-auto lg:mx-0 leading-relaxed animate-fade-in-up stagger-2 text-balance"
               >
                 BioCloudHub 深度整合行业知识库、数字化工具与监管流，为您构建可进化的行业智慧生态。
               </p>
-              
+
               <div class="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start animate-fade-in-up stagger-3">
                 <a
                   href="./card/index.html"
@@ -453,11 +471,10 @@
                 </button>
               </div>
             </div>
-            <!-- Antibody Canvas Container -->
+            <!-- Antibody Canvas Container (Spacer) -->
             <div
               class="lg:w-1/2 h-[400px] lg:h-[600px] w-full relative perspective-1000 animate-fade-in-up stagger-2"
             >
-              <div id="antibody-canvas" class="drop-shadow-[0_0_50px_rgba(14,165,233,0.3)]"></div>
             </div>
           </div>
         </div>
@@ -496,7 +513,7 @@
       <section class="py-32 bg-white dark:bg-slate-950 relative transition-colors duration-500 overflow-hidden">
         <!-- Background decorative blob -->
         <div class="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-500/5 rounded-full blur-[120px] pointer-events-none"></div>
-        
+
         <div class="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
           <div
             class="flex flex-col md:flex-row md:items-end justify-between mb-24 gap-10"
@@ -520,7 +537,7 @@
               我们不仅提供信息，更致力于构建一个能够自我演进的行业智慧生态。
             </p>
           </div>
-          
+
           <div class="grid md:grid-cols-3 gap-10">
             <div
               v-for="(f, index) in features"
@@ -530,7 +547,7 @@
             >
               <!-- Hover gradient effect -->
               <div class="absolute inset-0 bg-gradient-to-br from-primary-500/0 via-primary-500/0 to-primary-500/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+
               <div
                 class="absolute -top-6 -right-6 p-8 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.1] dark:group-hover:opacity-[0.15] transition-all duration-700 group-hover:-translate-x-4 group-hover:translate-y-4"
               >
@@ -539,18 +556,18 @@
                   style="width: 160px; height: 160px"
                 ></i>
               </div>
-              
+
               <div
                 :class="['w-16 h-16 rounded-2xl flex items-center justify-center mb-10 shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-6', f.bg, f.color]"
               >
                 <i :data-lucide="f.icon" style="width: 32px; height: 32px"></i>
               </div>
-              
+
               <h3 class="text-2xl font-black mb-6 text-gray-900 dark:text-white tracking-tight">
                 {{ f.title }}
               </h3>
               <p class="text-gray-600 dark:text-gray-400 leading-relaxed text-lg font-medium">{{ f.desc }}</p>
-              
+
               <div
                 class="mt-10 flex items-center gap-3 text-primary-600 dark:text-primary-400 font-bold cursor-pointer group/link"
               >
@@ -632,16 +649,16 @@
               </div>
               <span class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">BioCloudHub</span>
             </div>
-            
+
             <div class="flex flex-wrap justify-center gap-x-12 gap-y-6 mb-12 text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
               <a href="#" class="hover:text-primary-500 transition-colors">关于我们</a>
               <a href="#" class="hover:text-primary-500 transition-colors">隐私政策</a>
               <a href="#" class="hover:text-primary-500 transition-colors">服务协议</a>
               <a href="#" class="hover:text-primary-500 transition-colors">联系方式</a>
             </div>
-            
+
             <div class="w-full max-w-xs h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-slate-800 to-transparent mb-12"></div>
-            
+
             <p class="text-gray-400 dark:text-gray-600 text-sm font-medium">
               © 2026 BioCloudHub. Intelligence for Biopharma Excellence.
             </p>
@@ -650,7 +667,10 @@
       </footer>
     </div>
 
-    <script>
+    <script type="module">
+      import * as THREE from 'three';
+
+
       // Theme Management
       const themeToggle = document.getElementById('theme-toggle');
       const htmlElement = document.documentElement;
@@ -682,6 +702,17 @@
       createApp({
         setup() {
           const isMenuOpen = ref(false);
+          const isScrolled = ref(false);
+          const scrollContainer = ref(null);
+
+          onMounted(() => {
+            if (scrollContainer.value) {
+              scrollContainer.value.addEventListener('scroll', () => {
+                isScrolled.value = scrollContainer.value.scrollTop > 20;
+              });
+            }
+          });
+
           const features = [
             {
               title: "行业知识库",
@@ -723,148 +754,418 @@
             if (!container) return;
 
             const scene = new THREE.Scene();
+
             const camera = new THREE.PerspectiveCamera(
               45,
               container.clientWidth / container.clientHeight,
               0.1,
               1000
             );
-            camera.position.z = 10;
+            camera.position.z = 11;
 
             const renderer = new THREE.WebGLRenderer({
               alpha: true,
               antialias: true,
             });
             renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000, 0);
             container.appendChild(renderer.domElement);
 
-            // Antibody Group
+            // --- Materials ---
+            // Heavy Chain (Structural)
+            const heavyChainMat = new THREE.MeshPhysicalMaterial({
+              color: 0x0369a1,
+              metalness: 0.2,
+              roughness: 0.4,
+              clearcoat: 0.5,
+              emissive: 0x000000,
+            });
+
+            // Light Chain
+            const lightChainMat = new THREE.MeshPhysicalMaterial({
+              color: 0x7dd3fc,
+              metalness: 0.1,
+              roughness: 0.4,
+              clearcoat: 0.5,
+              emissive: 0x000000,
+            });
+
+            // Variable Region (Tips)
+            const variableRegionMat = new THREE.MeshPhysicalMaterial({
+              color: 0x2dd4bf,
+              metalness: 0.3,
+              roughness: 0.2,
+              emissive: 0x2dd4bf,
+              emissiveIntensity: 0.4,
+              clearcoat: 0.8,
+            });
+
+            // Connector/Hinge
+            const jointMat = new THREE.MeshPhysicalMaterial({
+              color: 0xffffff,
+              metalness: 0.9,
+              roughness: 0.1,
+              emissive: 0xffffff,
+              emissiveIntensity: 0.5,
+            });
+
+            // --- Geometry Construction ---
             const antibody = new THREE.Group();
 
-            const createChain = (x, y, z, rx, ry, rz, h) => {
-              const geometry = new THREE.CylinderGeometry(0.12, 0.12, h, 32);
-              const material = new THREE.MeshStandardMaterial({
-                color: 0x0ea5e9,
-                emissive: 0x075985,
-                roughness: 0.1,
-                metalness: 0.8,
-                transparent: true,
-                opacity: 0.9,
-              });
-              const mesh = new THREE.Mesh(geometry, material);
+            const createCapsule = (r, len, mat, x, y, z, rx, ry, rz) => {
+              const geo = new THREE.CapsuleGeometry(r, len, 4, 16);
+              const mesh = new THREE.Mesh(geo, mat);
 
-              const wireGeometry = new THREE.CylinderGeometry(0.13, 0.13, h, 12);
-              const wireMaterial = new THREE.MeshBasicMaterial({
-                color: 0x38bdf8,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.15,
-              });
-              const wireMesh = new THREE.Mesh(wireGeometry, wireMaterial);
-              mesh.add(wireMesh);
-
-              mesh.position.set(x, y, z);
-              mesh.rotation.set(rx, ry, rz);
+              mesh.position.set(x || 0, y || 0, z || 0);
+              if (rx) mesh.rotation.set(rx, ry, rz);
               return mesh;
             };
 
-            const createJoint = (x, y, z) => {
-              const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-              const material = new THREE.MeshStandardMaterial({
-                color: 0x2dd4bf,
-                emissive: 0x134e4a,
-                roughness: 0.1,
-                metalness: 0.9,
-              });
-              const mesh = new THREE.Mesh(geometry, material);
+            // 1. Fc Region (Stem)
+            const stemGroup = new THREE.Group();
+            const heavyLeft = createCapsule(0.15, 2.2, heavyChainMat, -0.16, -1.0, 0);
+            const heavyRight = createCapsule(0.15, 2.2, heavyChainMat, 0.16, -1.0, 0);
+            stemGroup.add(heavyLeft, heavyRight);
+            antibody.add(stemGroup);
 
-              const glowGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-              const glowMaterial = new THREE.MeshBasicMaterial({
-                color: 0x2dd4bf,
-                transparent: true,
-                opacity: 0.1,
-              });
-              const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
-              mesh.add(glowMesh);
+            // Hinge
+            const hinge = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), jointMat);
+            hinge.position.set(0, 0.3, 0);
+            antibody.add(hinge);
 
-              mesh.position.set(x, y, z);
-              return mesh;
+            // 2. Arms
+            const createArm = (isLeft) => {
+              const arm = new THREE.Group();
+              const dir = isLeft ? 1 : -1;
+              const angle = Math.PI / 3.5;
+
+              arm.rotation.z = dir * angle;
+              arm.position.set(0, 0.3, 0);
+
+              // CH1 (Constant Heavy 1)
+              arm.add(createCapsule(0.14, 1.0, heavyChainMat, -dir * 0.15, 0.7, 0));
+              // CL (Constant Light)
+              arm.add(createCapsule(0.14, 1.0, lightChainMat, dir * 0.15, 0.7, 0));
+
+              // VH (Variable Heavy) - Tip
+              arm.add(createCapsule(0.15, 0.8, variableRegionMat, -dir * 0.15, 1.8, 0));
+              // VL (Variable Light) - Tip
+              arm.add(createCapsule(0.15, 0.8, variableRegionMat, dir * 0.15, 1.8, 0));
+
+              // Disulfide bridge
+              const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8), jointMat);
+              bridge.rotation.z = Math.PI / 2;
+              bridge.position.set(0, 0.2, 0);
+              arm.add(bridge);
+
+              return arm;
             };
 
-            // Main stem
-            antibody.add(createChain(0, -1.2, 0, 0, 0, 0, 3.5));
-            antibody.add(createJoint(0, 0.5, 0));
-
-            // Left arm
-            antibody.add(createChain(-1.2, 2.2, 0, 0, 0, Math.PI / 4, 2.8));
-            antibody.add(createJoint(-2.2, 3.2, 0));
-
-            // Right arm
-            antibody.add(createChain(1.2, 2.2, 0, 0, 0, -Math.PI / 4, 2.8));
-            antibody.add(createJoint(2.2, 3.2, 0));
-
+            antibody.add(createArm(true));
+            antibody.add(createArm(false));
             scene.add(antibody);
 
-            // Particle Field
-            const particlesGeometry = new THREE.BufferGeometry();
-            const count = 2000;
-            const positions = new Float32Array(count * 3);
-            for (let i = 0; i < count * 3; i++) {
-              positions[i] = (Math.random() - 0.5) * 25;
-            }
-            particlesGeometry.setAttribute(
-              "position",
-              new THREE.BufferAttribute(positions, 3)
-            );
-            const particlesMaterial = new THREE.PointsMaterial({
-              size: 0.04,
-              color: 0x38bdf8,
+            // --- Background Elements (DNA, Molecules, Plus signs) ---
+            const floatingGroup = new THREE.Group();
+            scene.add(floatingGroup);
+
+            // 1. DNA Fragments (Smooth Helix)
+            const dnaBackboneMat = new THREE.MeshPhysicalMaterial({
+              color: 0xbae6fd,
+              metalness: 0.1,
+              roughness: 0.1,
               transparent: true,
-              opacity: 0.4,
-              blending: THREE.AdditiveBlending
+              opacity: 0.5,
+              side: THREE.DoubleSide
             });
-            const points = new THREE.Points(
-              particlesGeometry,
-              particlesMaterial
-            );
-            scene.add(points);
 
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-            scene.add(ambientLight);
+            const dnaRungMat = new THREE.MeshPhysicalMaterial({
+              color: 0xe0f2fe,
+              metalness: 0.1,
+              roughness: 0.1,
+              transparent: true,
+              opacity: 0.3
+            });
 
-            const pointLight1 = new THREE.PointLight(0x0ea5e9, 5, 50);
-            pointLight1.position.set(10, 10, 10);
-            scene.add(pointLight1);
+            // Helix Curve Definition
+            class HelixCurve extends THREE.Curve {
+              constructor(radius, height, turns, phase) {
+                super();
+                this.radius = radius;
+                this.height = height;
+                this.turns = turns;
+                this.phase = phase;
+              }
+              getPoint(t) {
+                const angle = t * Math.PI * 2 * this.turns + this.phase;
+                const x = Math.cos(angle) * this.radius;
+                const y = (t - 0.5) * this.height;
+                const z = Math.sin(angle) * this.radius;
+                return new THREE.Vector3(x, y, z);
+              }
+            }
 
-            const pointLight2 = new THREE.PointLight(0x2dd4bf, 3, 50);
-            pointLight2.position.set(-10, -10, 10);
-            scene.add(pointLight2);
+            const createDNA = (x, y, z, scale) => {
+               const dna = new THREE.Group();
+               const radius = 0.4;
+               const height = 2.5;
+               const turns = 1.5;
 
+               // Strand 1
+               const curve1 = new HelixCurve(radius, height, turns, 0);
+               const tube1 = new THREE.Mesh(new THREE.TubeGeometry(curve1, 64, 0.04, 8, false), dnaBackboneMat);
+               dna.add(tube1);
+
+               // Strand 2
+               const curve2 = new HelixCurve(radius, height, turns, Math.PI);
+               const tube2 = new THREE.Mesh(new THREE.TubeGeometry(curve2, 64, 0.04, 8, false), dnaBackboneMat);
+               dna.add(tube2);
+
+               // Rungs (Base pairs)
+               const rungs = 12;
+               for(let i=0; i<rungs; i++) {
+                   const t = i / (rungs - 1);
+                   const p1 = curve1.getPoint(t);
+                   const p2 = curve2.getPoint(t);
+
+                   const dist = p1.distanceTo(p2);
+                   const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, dist, 8), dnaRungMat);
+                   rung.position.copy(p1).add(p2).multiplyScalar(0.5);
+                   rung.lookAt(p2);
+                   rung.rotateX(Math.PI / 2);
+                   dna.add(rung);
+               }
+
+               dna.position.set(x, y, z);
+               dna.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+               dna.scale.set(scale * 0.5, scale * 0.5, scale * 0.5);
+               return dna;
+            };
+
+            for(let i=0; i<5; i++) {
+               const x = (Math.random() - 0.5) * 15;
+               const y = (Math.random() - 0.5) * 15;
+               const z = (Math.random() - 0.5) * 10 - 5;
+               floatingGroup.add(createDNA(x, y, z, 0.8 + Math.random() * 0.5));
+            }
+
+            // 2. Small Molecules
+            const molMat = new THREE.MeshPhysicalMaterial({
+               color: 0x99f6e4,
+               metalness: 0.2,
+               roughness: 0.2,
+               transparent: true,
+               opacity: 0.4
+            });
+
+            const createMolecule = (x, y, z) => {
+                const mol = new THREE.Group();
+                const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), molMat);
+                const c2 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), molMat);
+                const c3 = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), molMat);
+
+                c2.position.set(0.3, 0.2, 0);
+                c3.position.set(-0.3, 0.2, 0);
+
+                mol.add(c1, c2, c3);
+                mol.position.set(x, y, z);
+                mol.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+                return mol;
+            };
+
+            for(let i=0; i<8; i++) {
+                const x = (Math.random() - 0.5) * 18;
+                const y = (Math.random() - 0.5) * 18;
+                const z = (Math.random() - 0.5) * 10 - 2;
+                floatingGroup.add(createMolecule(x, y, z));
+            }
+
+             // 3. Plus Signs
+            const plusMat = new THREE.MeshBasicMaterial({
+                color: 0xe0f2fe,
+                transparent: true,
+                opacity: 0.15
+            });
+            const createPlus = (x, y, z) => {
+                const plus = new THREE.Group();
+                const v = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.4, 0.02), plusMat);
+                const h = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.08, 0.02), plusMat);
+                plus.add(v, h);
+                plus.position.set(x, y, z);
+                plus.rotation.set(Math.random()*0.5, Math.random()*0.5, Math.random()*0.5);
+                return plus;
+            };
+
+            for(let i=0; i<12; i++) {
+                const x = (Math.random() - 0.5) * 20;
+                const y = (Math.random() - 0.5) * 20;
+                const z = (Math.random() - 0.5) * 12 - 4;
+                floatingGroup.add(createPlus(x, y, z));
+            }
+
+            // 4. Lab Flasks
+            const glassMat = new THREE.MeshPhysicalMaterial({
+                color: 0xa5f3fc,
+                metalness: 0.1,
+                roughness: 0.1,
+                transmission: 0.9,
+                thickness: 0.5,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide
+            });
+
+            const createFlask = (x, y, z) => {
+                const flask = new THREE.Group();
+
+                // Body
+                const body = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.35, 16, 1, true), glassMat);
+
+                // Neck
+                const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.25, 16, 1, true), glassMat);
+                neck.position.y = 0.3;
+
+                // Liquid
+                const liquid = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.2, 16), new THREE.MeshBasicMaterial({
+                    color: 0x2dd4bf,
+                    transparent: true,
+                    opacity: 0.5
+                }));
+                liquid.position.y = -0.05;
+
+                flask.add(body, neck, liquid);
+                flask.position.set(x, y, z);
+                flask.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, 0);
+                return flask;
+            };
+
+            for(let i=0; i<6; i++) {
+                const x = (Math.random() - 0.5) * 22;
+                const y = (Math.random() - 0.5) * 20;
+                const z = (Math.random() - 0.5) * 15 - 3;
+                floatingGroup.add(createFlask(x, y, z));
+            }
+
+            // 5. Data Network (Constellation)
+            const networkGroup = new THREE.Group();
+            floatingGroup.add(networkGroup);
+
+            const nodesData = [];
+            const nodeCount = 40;
+            const nodeGeo = new THREE.SphereGeometry(0.06, 8, 8);
+            const nodeMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.6 });
+
+            for(let i=0; i<nodeCount; i++) {
+                const mesh = new THREE.Mesh(nodeGeo, nodeMat);
+                const x = (Math.random() - 0.5) * 30;
+                const y = (Math.random() - 0.5) * 30;
+                const z = (Math.random() - 0.5) * 10 - 5;
+                mesh.position.set(x, y, z);
+
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02
+                );
+
+                networkGroup.add(mesh);
+                nodesData.push({ mesh, velocity });
+            }
+
+            const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.15 });
+            const lineGeo = new THREE.BufferGeometry();
+            const linePos = new Float32Array(nodeCount * nodeCount * 3);
+            lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+            const linesMesh = new THREE.LineSegments(lineGeo, lineMat);
+            networkGroup.add(linesMesh);
+
+            // --- Lights ---
+            const ambient = new THREE.AmbientLight(0x111111);
+            scene.add(ambient);
+
+            const pointLight = new THREE.PointLight(0xffffff, 50, 100);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            const rimLight = new THREE.SpotLight(0xffffff, 80);
+            rimLight.position.set(-5, 10, -5);
+            rimLight.lookAt(0,0,0);
+            scene.add(rimLight);
+
+            // --- Interaction & Animation ---
             const mouse = { x: 0, y: 0 };
-            window.addEventListener("mousemove", (event) => {
-              mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-              mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            window.addEventListener('mousemove', e => {
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
             });
+
+            const clock = new THREE.Clock();
 
             const animate = () => {
               requestAnimationFrame(animate);
+              const time = clock.getElapsedTime();
 
-              // Base rotation + mouse interaction
-              antibody.rotation.y +=
-                0.005 + (mouse.x * 0.2 - antibody.rotation.y) * 0.02;
-              antibody.rotation.x +=
-                (-mouse.y * 0.2 + 0.2 - antibody.rotation.x) * 0.02;
+              // Pulse Antibody Tips
+              variableRegionMat.emissiveIntensity = 0.4 + Math.sin(time * 3) * 0.3;
 
-              // Automatic gentle floating
-              antibody.position.y = Math.sin(Date.now() * 0.001) * 0.2;
-              points.rotation.y += 0.0005;
-              points.rotation.x += 0.0002;
+              // Organic floating
+              const isDesktop = window.innerWidth >= 1024;
+              const targetX = isDesktop ? 3.5 : 0;
+              const targetY = isDesktop ? 0 : -1.5;
+
+              antibody.position.x = THREE.MathUtils.lerp(antibody.position.x, targetX, 0.05);
+              antibody.position.y = THREE.MathUtils.lerp(antibody.position.y, targetY + Math.sin(time * 0.5) * 0.5, 0.05);
+              antibody.rotation.z = Math.sin(time * 0.3) * 0.1;
+
+              // Background Parallax
+              floatingGroup.position.x += ( -mouse.x * 1.5 - floatingGroup.position.x ) * 0.05;
+              floatingGroup.position.y += ( -mouse.y * 1.5 - floatingGroup.position.y ) * 0.05;
+
+              // Animate background elements
+              floatingGroup.rotation.y = time * 0.05;
+              floatingGroup.children.forEach((child, i) => {
+                  if(child === networkGroup) return; // Skip network group, handled separately
+                  child.rotation.x += 0.002;
+                  child.rotation.y += 0.002;
+                  child.position.y += Math.sin(time * 0.5 + i) * 0.005;
+              });
+
+              // Update Network
+              let lineIndex = 0;
+              const linePositions = linesMesh.geometry.attributes.position.array;
+
+              nodesData.forEach((node, i) => {
+                  node.mesh.position.add(node.velocity);
+                  // Bounce
+                  if(Math.abs(node.mesh.position.x) > 20) node.velocity.x *= -1;
+                  if(Math.abs(node.mesh.position.y) > 20) node.velocity.y *= -1;
+                  if(Math.abs(node.mesh.position.z) > 10) node.velocity.z *= -1;
+
+                  // Connect
+                  for(let j=i+1; j<nodeCount; j++) {
+                      const node2 = nodesData[j];
+                      const distSq = node.mesh.position.distanceToSquared(node2.mesh.position);
+                      if(distSq < 25) { // dist < 5
+                          linePositions[lineIndex++] = node.mesh.position.x;
+                          linePositions[lineIndex++] = node.mesh.position.y;
+                          linePositions[lineIndex++] = node.mesh.position.z;
+
+                          linePositions[lineIndex++] = node2.mesh.position.x;
+                          linePositions[lineIndex++] = node2.mesh.position.y;
+                          linePositions[lineIndex++] = node2.mesh.position.z;
+                      }
+                  }
+              });
+              linesMesh.geometry.setDrawRange(0, lineIndex / 3);
+              linesMesh.geometry.attributes.position.needsUpdate = true;
+
+              // Mouse interaction (Rotation)
+              antibody.rotation.y = THREE.MathUtils.lerp(antibody.rotation.y, mouse.x * 0.2, 0.05);
+              antibody.rotation.x = THREE.MathUtils.lerp(antibody.rotation.x, -mouse.y * 0.2, 0.05);
 
               renderer.render(scene, camera);
             };
-
             animate();
 
             window.addEventListener("resize", () => {
@@ -874,7 +1175,7 @@
             });
           };
 
-          return { isMenuOpen, features, stats };
+          return { isMenuOpen, isScrolled, scrollContainer, features, stats };
         },
       }).mount("#app");
     </script>
